@@ -1,19 +1,29 @@
 from akai_pro_py import controllers
 from scipy.interpolate import interp1d
-from rtmidi import MidiOut
+from rtmidi import MidiOut, MidiIn
 from re import match
 
 
-def get_controller(search) -> str:
+def get_midi_in(search) -> str:
+    for port in MidiIn().get_ports():
+        matching = match(search, port)
+        if matching:
+            return matching.group()
+
+
+def get_midi_out(search) -> str:
     for port in MidiOut().get_ports():
         matching = match(search, port)
         if matching:
             return matching.group()
 
 
+# Names may change for your system
+# probe for them using rtmidi.MidiOut().get_ports()
+# or rtmidi.MidiIn().get_ports()
 apc = controllers.APCMinimkii(
-    get_controller(r"^APC.*?Contr.*$"),
-    get_controller(r"^APC.*?Contr.*$")
+    get_midi_in(r"^APC.*?Contr.*$"),
+    get_midi_out(r"^APC.*?Contr.*$")
 )
 
 apc.reset()  # turn off all leds
@@ -48,7 +58,8 @@ def on_control_event(event):
             print("turn off on button " + str(event.button_id))
             apc.lowerbuttons.set_led(event.button_id, 0)
     elif isinstance(event, controllers.APCMinimkii.ShiftButton):
-        apc.reset()
+        # apc.reset()
+        apc.gridbuttons.reset_all()
     elif isinstance(event, controllers.APCMinimkii.Fader):
         # Ignore fader ID 8 (the master fader)
         if event.fader_id == 8:
@@ -66,7 +77,9 @@ def on_control_event(event):
             for i in range(0, value + 1):
                 # and set them to green
                 if event.value == 127:
-                    apc.gridbuttons.set_led(event.fader_id, i, "green", "blink")
+                    apc.gridbuttons.set_led(
+                        event.fader_id, i, "green", "blink"
+                    )
                 else:
                     apc.gridbuttons.set_led(event.fader_id, i, "blue", "pulse")
             # Go through all the LEDs that should be off
@@ -75,4 +88,5 @@ def on_control_event(event):
                 apc.gridbuttons.set_led(event.fader_id, i, "off", 0)
 
 
-apc.start()
+if __name__ == "__main__":
+    apc.start()
