@@ -6,9 +6,10 @@ Interface with Midi controllers using python
 * AKAI APC Mini mk2
 * MIDI Mix
 
-Requires [mido](https://github.com/mido/mido) and asyncio *(will be automatically be installed with pip)*
 
 # Install:
+Requires [mido](https://github.com/mido/mido) and asyncio *(will be automatically be installed with pip)*
+
 To install, simply run:
 ```
 pip3 install -U git+https://github.com/dhoessl/apc-mini-py 
