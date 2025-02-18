@@ -254,7 +254,7 @@ class APCMinimkii(Controller):
         self.sidebuttons = APCMinimkii.SideButtons(self)
         self.lowerbuttons = APCMinimkii.LowerButtons(self)
 
-    def reset(self):
+    def reset(self, fast=False):
         """Turns off all LEDs"""
         # Build range
         all_leds = [int(x) for x in range(64)]
@@ -262,7 +262,8 @@ class APCMinimkii(Controller):
         all_leds += APCMinimkii.LowerButtonMapping
         for i in all_leds:
             self.midi_out.send(mido.Message("note_on", note=i, velocity=0))
-            time.sleep(0.005)
+            if not fast:
+                time.sleep(0.005)
 
     def product_detect(self, event):
         try:
@@ -346,6 +347,16 @@ class APCMinimkii(Controller):
         def set_led(self, x, y, colour, effect):
             """Sets an LED on the button grid"""
             APCMinimkii.GridButton(self.controller, x, y).set_led(colour, effect)  # noqa: E501
+
+        def reset_led(self, x, y):
+            """ Turns of an LED on the button grid """
+            APCMinimkii.GridButton(self.controller, x, y).set_led(0, 0)  # noqa: E501
+
+        def reset_all_leds(self):
+            for button in range(64):
+                self.midi_out.send(
+                    mido.Message("note_on", note=button, velocity=0)
+                )
 
     class GridButton:  # A specific grid button
         def __init__(self, controller, x: int, y: int, state: bool = False):
@@ -432,6 +443,15 @@ class APCMinimkii(Controller):
             """Sets an LED on the side buttons"""
             APCMinimkii.SideButton(self.controller, button_id).set_led(colour)
 
+        def reset_led(self, button_id):
+            """Turns of an LED on the side buttons"""
+            APCMinimkii.SideButton(self.controller, button_id).set_led(0)
+
+        def reset_all_leds(self):
+            """Turns of all LEDs on the side buttons"""
+            for button in range(len(APCMinimkii.SideButtonMapping)):
+                self.reset_led(button)
+
     class SideButton:  # A specific side button
         def __init__(self, controller, button_id: int, state: bool = False):
             self.controller = controller
@@ -481,6 +501,15 @@ class APCMinimkii(Controller):
         def set_led(self, button_id, colour):
             """Sets an LED on the lower buttons"""
             APCMinimkii.LowerButton(self.controller, button_id).set_led(colour)
+
+        def reset_led(self, button_id):
+            """Turns of an LED on the lower buttons"""
+            APCMinimkii.LowerButton(self.controller, button_id).set_led(0)
+
+        def reset_all_leds(self):
+            """Turns of all LEDs on the lower buttons"""
+            for button in range(len(APCMinimkii.LowerButtonMapping)):
+                self.reset_led(button)
 
     class LowerButton:  # A specific side button
         def __init__(self, controller, button_id: int, state: bool = False):
