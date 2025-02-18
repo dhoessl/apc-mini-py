@@ -354,7 +354,7 @@ class APCMinimkii(Controller):
 
         def reset_all_leds(self):
             for button in range(64):
-                self.midi_out.send(
+                self.controller.midi_out.send(
                     mido.Message("note_on", note=button, velocity=0)
                 )
 
