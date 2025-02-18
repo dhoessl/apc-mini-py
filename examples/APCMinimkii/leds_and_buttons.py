@@ -59,7 +59,7 @@ def on_control_event(event):
             apc.lowerbuttons.set_led(event.button_id, 0)
     elif isinstance(event, controllers.APCMinimkii.ShiftButton):
         # apc.reset()
-        apc.gridbuttons.reset_all()
+        apc.gridbuttons.reset_all_leds()
     elif isinstance(event, controllers.APCMinimkii.Fader):
         # Ignore fader ID 8 (the master fader)
         if event.fader_id == 8:
