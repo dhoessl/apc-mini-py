@@ -2,10 +2,13 @@ import mido
 import asyncio
 
 from . import errors
+from .logger import setup_logger
 
 
 class Controller:
-    def __init__(self, midi_in=None, midi_out=None):
+    def __init__(self, midi_in=None, midi_out=None, logging_enabled=False):
+        self.logger = setup_logger(__name__)
+        self.logging = logging_enabled
         self.midi_out = mido.open_output(midi_out)  # Open MIDI out for controller
         self.midi_in = mido.open_input(midi_in)  # Open MIDI in for controller
         self.setup_in_progress = True
@@ -15,17 +18,24 @@ class Controller:
         self.raw_dispatch = False
         self.loop = asyncio.new_event_loop()  # Creates the event loop for handling button presses
         self.name = "Base Controller"  # Name of the device
-        self.midi_out.send(mido.Message.from_bytes([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]))  # MIDI Device Enquiry (SysEx)
+        # MIDI Device Enquiry (SysEx)
+        self.midi_out.send(mido.Message.from_bytes([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]))
 
     def on_event(self, func):
         """Used to dispatch MIDI events from the controller"""
         if self.event_dispatch is not None:
-            raise errors.AkaiProPyError("Event dispatch function is already defined!")
+            msg = "Event dispatch function is already defined!"
+            if self.logging:
+                self.logger.error(msg)
+            raise errors.AkaiProPyError(msg)
         self.event_dispatch = func
 
     def on_ready(self, func):
         if self.ready_dispatch is not None:
-            raise errors.AkaiProPyError("Ready event function already defined!")
+            msg = "Ready event function already defined!"
+            if self.logging:
+                self.logger.error(msg)
+            raise errors.AkaiProPyError(msg)
         self.ready_dispatch = func
 
     def on_midi_in(self, event):
@@ -39,9 +49,19 @@ class Controller:
     def product_detect(self, event):
         try:
             if event.data[4] != 6:
-                raise errors.ControllerIdentificationError(self, self.midi_in, "Controller did not identify!")
+                msg = "Controller did not identify!"
+                if self.logging:
+                    self.logger.error(msg)
+                raise errors.ControllerIdentificationError(
+                    self, self.midi_in, msg
+                )
         except KeyError:
-            raise errors.ControllerIdentificationError(self, self.midi_in, "Controller failed to identify!")
+            msg = "Controller failed to identify!"
+            if self.logging:
+                self.logger.error(msg)
+            raise errors.ControllerIdentificationError(
+                self, self.midi_in, msg
+            )
         self.setup_in_progress = False
         return True
 
@@ -52,4 +72,3 @@ class Controller:
     def start(self):
         """Start the event loop for receiving MIDI messages"""
         self.loop.run_forever()
-

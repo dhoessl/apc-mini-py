@@ -3,6 +3,9 @@ import mido
 import time
 
 from . import errors
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class InvalidGridButton(errors.ControllerError):
@@ -23,24 +26,33 @@ class InvalidGridButton(errors.ControllerError):
 
     def __str__(self):
         if self.controller and self.midi_port and self.x and self.y:
-            return f"Grid Button {self.x},{self.y} does not exist on " \
-                    f"controller {self.controller.name}, MIDI port: " \
-                    f"{self.midi_port.name}"
-
+            msg = f"Grid Button {self.x},{self.y} does not exist on " \
+                   f"controller {self.controller.name}, MIDI port: " \
+                   f"{self.midi_port.name}"
+            logger.error(msg)
+            return msg
         elif self.controller and self.midi_port and self.button_id:
-            return f"Grid Button {self.button_id} does not exist on " \
+            msg = f"Grid Button {self.button_id} does not exist on " \
                     f"controller {self.controller.name}, MIDI port: " \
                     f"{self.midi_port.name}"
+            logger.error(msg)
+            return msg
 
         elif not self.controller and not self.midi_port and self.x and self.y:
-            return f"Grid Button {self.x},{self.y} does not exist on " \
+            msg = f"Grid Button {self.x},{self.y} does not exist on " \
                     f"controller"
+            logger.error(msg)
+            return msg
 
         elif not self.controller and not self.midi_port and self.button_id:
-            return f"Grid Button {self.button_id} does not exist on controller"
+            msg = f"Grid Button {self.button_id} does not exist on controller"
+            logger.error(msg)
+            return msg
 
         else:
-            return "Generic invalid Grid Button error"
+            msg = "Generic invalid Grid Button error"
+            logger.error(msg)
+            return msg
 
 
 class InvalidFader(errors.ControllerError):
