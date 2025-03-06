@@ -25,8 +25,13 @@ apc = controllers.APCMinimkii(
     get_midi_in(r"^APC.*?Contr.*$"),
     get_midi_out(r"^APC.*?Contr.*$")
 )
+midi_mix = controllers.MIDIMix(
+    get_midi_in(r"MIDI Mix.*?$"),
+    get_midi_out(r"MIDI Mix.*?$")
+)
 
 apc.reset()  # turn off all leds
+midi_mix.reset()  # reset midi_mix
 
 # Creates a map from the 7 bit values of MIDI to a 3 bit value for display
 midi_to_led = interp1d([0, 127], [0, 7])
@@ -86,6 +91,53 @@ def on_control_event(event):
             for i in range(value + 1, 8):
                 # and set them to off
                 apc.gridbuttons.set_led(event.fader_id, i, "off", 0)
+
+
+@midi_mix.on_event
+def on_event_midi_mix(event):
+    print(event)
+    if isinstance(event, controllers.MIDIMix.Knob):
+        print(
+            f"Knob {event.x},{event.y} was changed to "
+            f"{event.value} on {event.controller.name}"
+        )
+    if isinstance(event, controllers.MIDIMix.Fader):
+        print(
+            f"Fader {event.fader_id} was changed to "
+            f"{event.value} on {event.controller.name}"
+        )
+    if isinstance(event, controllers.MIDIMix.MuteButton):
+        print(
+            f"Mute Button {event.button_id} was changed "
+            f"to {event.state} on {event.controller.name}"
+        )
+        if event.state:
+            event.set_led("on")
+        else:
+            event.set_led("off")
+    if isinstance(event, controllers.MIDIMix.RecArmButton):
+        print(
+            f"Record Arm Button {event.button_id} was changed "
+            f"to {event.state} on {event.controller.name}"
+        )
+        if event.state:
+            event.set_led("on")
+        else:
+            event.set_led("off")
+    if isinstance(event, controllers.MIDIMix.SoloButton):
+        print(
+            f"Solo Button was changed to {event.state} on "
+            f"{event.controller.name}"
+        )
+    if isinstance(event, controllers.MIDIMix.BankButton):
+        print(
+            f"Bank Button {event.button_id} was changed to "
+            f"{event.state} on {event.controller.name}"
+        )
+        if event.state:
+            event.set_led("on")
+        else:
+            event.set_led("off")
 
 
 if __name__ == "__main__":
