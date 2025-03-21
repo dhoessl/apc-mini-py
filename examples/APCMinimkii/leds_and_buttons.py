@@ -1,33 +1,24 @@
 from akai_pro_py import controllers
 from scipy.interpolate import interp1d
-from rtmidi import MidiOut, MidiIn
+from mido import get_output_names
 from re import match
 
-
-def get_midi_in(search) -> str:
-    for port in MidiIn().get_ports():
+def get_midi_port(search) -> str:
+    for port in get_output_names():
         matching = match(search, port)
         if matching:
             return matching.group()
-
-
-def get_midi_out(search) -> str:
-    for port in MidiOut().get_ports():
-        matching = match(search, port)
-        if matching:
-            return matching.group()
-
 
 # Names may change for your system
-# probe for them using rtmidi.MidiOut().get_ports()
-# or rtmidi.MidiIn().get_ports()
+# probe for names using mido.get_output_names()
+# or mido.get_input_names()
 apc = controllers.APCMinimkii(
-    get_midi_in(r"^APC.*?Contr.*$"),
-    get_midi_out(r"^APC.*?Contr.*$")
+    get_midi_port(r"^APC.*?Contr.*$"),
+    get_midi_port(r"^APC.*?Contr.*$")
 )
 midi_mix = controllers.MIDIMix(
-    get_midi_in(r"MIDI Mix.*?$"),
-    get_midi_out(r"MIDI Mix.*?$")
+    get_midi_port(r"MIDI Mix.*?$"),
+    get_midi_port(r"MIDI Mix.*?$")
 )
 
 apc.reset()  # turn off all leds
